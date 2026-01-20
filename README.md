@@ -4,7 +4,21 @@ A Claude Code plugin for tracking AI usage time and token consumption.
 
 ## Installation
 
-### Method 1: Clone and Load
+### Method 1: Via Plugin Marketplace (Recommended)
+
+In Claude Code, register the marketplace first:
+
+```
+/plugin marketplace add tzangms/chronos-client
+```
+
+Then install the plugin:
+
+```
+/plugin install chronos@tzangms/chronos-client
+```
+
+### Method 2: Clone and Load (Development)
 
 ```bash
 # Clone the repository
@@ -14,15 +28,9 @@ git clone https://github.com/tzangms/chronos-client.git ~/.chronos-plugin
 claude --plugin-dir ~/.chronos-plugin
 ```
 
-### Method 2: One-Line Install
-
-```bash
-git clone https://github.com/tzangms/chronos-client.git ~/.chronos-plugin && claude --plugin-dir ~/.chronos-plugin
-```
-
 ### Method 3: Add to Shell Config (Permanent)
 
-Add this alias to your `~/.zshrc` or `~/.bashrc`:
+After cloning, add this alias to your `~/.zshrc` or `~/.bashrc`:
 
 ```bash
 alias claude='claude --plugin-dir ~/.chronos-plugin'
