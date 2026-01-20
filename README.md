@@ -26,10 +26,14 @@ claude plugin install chronos --scope project
 claude plugin install chronos --scope local
 ```
 
-### Method 3: One-Line Install from GitHub
+### Method 3: Install from Marketplace
 
 ```bash
-claude plugin install github:tzangms/chronos-client
+# Add the Chronos marketplace
+claude marketplace add https://raw.githubusercontent.com/tzangms/chronos-client/main/marketplace.json
+
+# Install the plugin
+claude plugin install chronos
 ```
 
 ## Configuration
