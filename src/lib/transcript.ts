@@ -1,6 +1,6 @@
 import * as fs from 'fs';
 import * as readline from 'readline';
-import { TranscriptEntry } from '@utrack/shared';
+import { TranscriptEntry } from '@chronos/shared';
 
 export interface TranscriptStats {
   input_tokens: number;

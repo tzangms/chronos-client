@@ -1,10 +1,10 @@
-# uTrack Status
+# Chronos Status
 
-Check your uTrack configuration and connection status.
+Check your Chronos configuration and connection status.
 
 ## Instructions
 
-1. Read the uTrack configuration file at `~/.utrack/config.json`
+1. Read the Chronos configuration file at `~/.chronos/config.json`
 2. Check if the configuration exists and is valid
 3. If configured, test the connection to the API server by making a request to `/health`
 4. Report the status to the user

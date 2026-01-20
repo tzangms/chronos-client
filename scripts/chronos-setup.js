@@ -1,10 +1,10 @@
 #!/usr/bin/env node
 
 /**
- * uTrack Setup Script
+ * Chronos Setup Script
  *
  * Run this to configure your API key and server URL.
- * Usage: node utrack-setup.js
+ * Usage: node chronos-setup.js
  */
 
 const fs = require('fs');
@@ -12,7 +12,7 @@ const path = require('path');
 const os = require('os');
 const readline = require('readline');
 
-const CONFIG_DIR = path.join(os.homedir(), '.utrack');
+const CONFIG_DIR = path.join(os.homedir(), '.chronos');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 
 function ensureConfigDir() {
@@ -52,8 +52,8 @@ function prompt(question) {
 }
 
 async function main() {
-  console.log('\n🔧 uTrack Setup\n');
-  console.log('Configure uTrack to track your Claude Code usage.\n');
+  console.log('\n🔧 Chronos Setup\n');
+  console.log('Configure Chronos to track your Claude Code usage.\n');
 
   const existingConfig = loadConfig();
 
@@ -66,7 +66,7 @@ async function main() {
 
   if (!apiKey && !existingConfig?.api_key) {
     console.error('\n❌ API Key is required.\n');
-    console.log('Get your API key from your uTrack server admin.\n');
+    console.log('Get your API key from your Chronos server admin.\n');
     process.exit(1);
   }
 
@@ -79,11 +79,11 @@ async function main() {
   saveConfig(config);
 
   console.log(`\n✅ Configuration saved to ${CONFIG_FILE}\n`);
-  console.log('uTrack is now configured!\n');
-  console.log('Make sure the utrack plugin is installed in Claude Code:\n');
-  console.log('  claude --plugin-dir /path/to/utrack/client\n');
+  console.log('Chronos is now configured!\n');
+  console.log('Make sure the chronos plugin is installed in Claude Code:\n');
+  console.log('  claude --plugin-dir /path/to/chronos/client\n');
   console.log('Or install permanently:\n');
-  console.log('  /plugin install utrack\n');
+  console.log('  /plugin install chronos\n');
 }
 
 main().catch((e) => {

@@ -4,7 +4,7 @@ import * as fs from 'fs';
 import * as path from 'path';
 import * as os from 'os';
 import * as readline from 'readline';
-import { loadConfig, saveConfig, UtrackConfig, getConfigDir } from '../lib/config';
+import { loadConfig, saveConfig, ChronosConfig, getConfigDir } from '../lib/config';
 import { syncOfflineHeartbeats } from '../lib/heartbeat';
 
 const CLAUDE_SETTINGS_PATH = path.join(os.homedir(), '.claude', 'settings.json');
@@ -24,8 +24,8 @@ function prompt(question: string): Promise<string> {
 }
 
 async function setup(): Promise<void> {
-  console.log('\n🔧 uTrack Setup\n');
-  console.log('This will configure uTrack to track your Claude Code usage.\n');
+  console.log('\n🔧 Chronos Setup\n');
+  console.log('This will configure Chronos to track your Claude Code usage.\n');
 
   const existingConfig = loadConfig();
 
@@ -39,11 +39,11 @@ async function setup(): Promise<void> {
   );
 
   if (!apiKey && !existingConfig?.api_key) {
-    console.error('\n❌ API Key is required. Get one from your uTrack server admin.\n');
+    console.error('\n❌ API Key is required. Get one from your Chronos server admin.\n');
     process.exit(1);
   }
 
-  const config: UtrackConfig = {
+  const config: ChronosConfig = {
     api_url: apiUrl,
     api_key: apiKey || existingConfig!.api_key,
     user_id: existingConfig?.user_id,
@@ -60,7 +60,7 @@ async function setup(): Promise<void> {
 async function setupClaudeHooks(): Promise<void> {
   console.log('Setting up Claude Code hooks...\n');
 
-  const hookCommand = 'utrack-hook';
+  const hookCommand = 'chronos-hook';
 
   let settings: any = {};
   if (fs.existsSync(CLAUDE_SETTINGS_PATH)) {
@@ -131,15 +131,15 @@ async function setupClaudeHooks(): Promise<void> {
 
   fs.writeFileSync(CLAUDE_SETTINGS_PATH, JSON.stringify(settings, null, 2));
   console.log(`✅ Claude Code hooks configured in ${CLAUDE_SETTINGS_PATH}\n`);
-  console.log('uTrack is now active! Your Claude Code usage will be tracked.\n');
+  console.log('Chronos is now active! Your Claude Code usage will be tracked.\n');
 }
 
 async function status(): Promise<void> {
-  console.log('\n📊 uTrack Status\n');
+  console.log('\n📊 Chronos Status\n');
 
   const config = loadConfig();
   if (!config) {
-    console.log('❌ Not configured. Run "utrack setup" first.\n');
+    console.log('❌ Not configured. Run "chronos setup" first.\n');
     return;
   }
 
@@ -176,11 +176,11 @@ async function main(): Promise<void> {
       await sync();
       break;
     default:
-      console.log('\nuTrack - Claude Code Usage Tracker\n');
+      console.log('\nChronos - Claude Code Usage Tracker\n');
       console.log('Usage:');
-      console.log('  utrack setup   - Configure uTrack');
-      console.log('  utrack status  - Show current status');
-      console.log('  utrack sync    - Sync offline heartbeats');
+      console.log('  chronos setup   - Configure Chronos');
+      console.log('  chronos status  - Show current status');
+      console.log('  chronos sync    - Sync offline heartbeats');
       console.log('');
       break;
   }

@@ -1,13 +1,13 @@
 import * as https from 'https';
 import * as http from 'http';
-import { Heartbeat, HeartbeatResponse } from '@utrack/shared';
+import { Heartbeat, HeartbeatResponse } from '@chronos/shared';
 import { loadConfig } from './config';
 import { appendOfflineHeartbeat, loadOfflineHeartbeats, clearOfflineHeartbeats } from './storage';
 
 export async function sendHeartbeats(heartbeats: Heartbeat[]): Promise<HeartbeatResponse> {
   const config = loadConfig();
   if (!config) {
-    throw new Error('No config found. Run "utrack setup" first.');
+    throw new Error('No config found. Run "chronos setup" first.');
   }
 
   const url = new URL('/api/v1/heartbeats/bulk', config.api_url);
@@ -26,7 +26,7 @@ export async function sendHeartbeats(heartbeats: Heartbeat[]): Promise<Heartbeat
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData),
         'Authorization': `Bearer ${config.api_key}`,
-        'User-Agent': 'utrack-client/0.1.0',
+        'User-Agent': 'chronos-client/0.1.0',
       },
       timeout: 30000,
     };
@@ -67,7 +67,7 @@ export async function sendHeartbeat(heartbeat: Heartbeat): Promise<boolean> {
   } catch (error) {
     // Store offline for later sync
     appendOfflineHeartbeat(heartbeat);
-    if (process.env.UTRACK_DEBUG) {
+    if (process.env.CHRONOS_DEBUG) {
       console.error('Failed to send heartbeat, stored offline:', error);
     }
     return false;

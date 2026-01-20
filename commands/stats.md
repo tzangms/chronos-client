@@ -1,12 +1,12 @@
-# uTrack Stats
+# Chronos Stats
 
 View your Claude Code usage statistics.
 
 ## Instructions
 
-1. Read the uTrack configuration from `~/.utrack/config.json`
-2. If not configured, inform the user to run `/utrack:setup` first
-3. Make a GET request to the uTrack API:
+1. Read the Chronos configuration from `~/.chronos/config.json`
+2. If not configured, inform the user to run `/chronos:setup` first
+3. Make a GET request to the Chronos API:
    - For today's stats: `GET /api/v1/stats/today`
    - For weekly stats: `GET /api/v1/stats/week`
    - Include the Authorization header: `Bearer <api_key>`
@@ -28,6 +28,6 @@ Show the following metrics:
 ## Example Usage
 
 ```
-/utrack:stats
-/utrack:stats week
+/chronos:stats
+/chronos:stats week
 ```

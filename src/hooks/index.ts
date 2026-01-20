@@ -6,7 +6,7 @@ import {
   ClaudeStopInput,
   ClaudePostToolUseInput,
   Heartbeat,
-} from '@utrack/shared';
+} from '@chronos/shared';
 import { loadConfig } from '../lib/config';
 import { getMachineId, getOS } from '../lib/machine';
 import { sendHeartbeat, syncOfflineHeartbeats } from '../lib/heartbeat';
@@ -184,7 +184,7 @@ async function main(): Promise<void> {
 
     process.exit(0);
   } catch (error) {
-    if (process.env.UTRACK_DEBUG) {
+    if (process.env.CHRONOS_DEBUG) {
       console.error('Hook error:', error);
     }
     process.exit(0); // Don't block Claude Code on errors
