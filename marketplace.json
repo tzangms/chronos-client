@@ -1,0 +1,12 @@
+{
+  "name": "chronos-marketplace",
+  "description": "Chronos plugin marketplace",
+  "plugins": [
+    {
+      "name": "chronos",
+      "description": "Track Claude Code usage time and token consumption",
+      "version": "0.1.0",
+      "path": "./client"
+    }
+  ]
+}
