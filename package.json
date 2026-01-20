@@ -1,0 +1,23 @@
+{
+  "name": "@chronos/client",
+  "version": "0.1.0",
+  "description": "Claude Code plugin for tracking AI usage time",
+  "main": "dist/index.js",
+  "bin": {
+    "chronos": "./dist/cli/index.js",
+    "chronos-hook": "./dist/hooks/index.js"
+  },
+  "scripts": {
+    "build": "tsc",
+    "dev": "tsc --watch",
+    "setup": "node dist/cli/setup.js"
+  },
+  "dependencies": {
+    "@chronos/shared": "*",
+    "node-machine-id": "^1.1.12"
+  },
+  "devDependencies": {
+    "@types/node": "^20.10.0",
+    "typescript": "^5.3.3"
+  }
+}
