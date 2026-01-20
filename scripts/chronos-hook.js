@@ -362,7 +362,7 @@ async function readStdin() {
 const DEBUG_LOG_FILE = path.join(CONFIG_DIR, 'debug.log');
 
 function debugLog(message, data = null) {
-  // Temporarily always log for debugging
+  if (!process.env.CHRONOS_DEBUG) return;
   const timestamp = new Date().toISOString();
   const logLine = data
     ? `[${timestamp}] ${message}: ${JSON.stringify(data, null, 2)}\n`
