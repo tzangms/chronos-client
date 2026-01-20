@@ -278,14 +278,23 @@ async function handleSessionStart(config, input) {
 }
 
 async function handleStop(config, input) {
+  debugLog('handleStop called', { transcript_path: input.transcript_path });
+
   // Parse transcript to get token usage
   const stats = await parseTranscript(input.transcript_path);
+  debugLog('Transcript parsed', {
+    total_entries: stats.entries.length,
+    input_tokens: stats.input_tokens,
+    output_tokens: stats.output_tokens
+  });
 
   // Check for new entries
   const submittedIds = loadSubmittedIds();
   const newEntries = stats.entries.filter(e => e.uuid && !submittedIds.has(e.uuid));
-
-  if (newEntries.length === 0) return;
+  debugLog('New entries', {
+    new_count: newEntries.length,
+    submitted_count: submittedIds.size
+  });
 
   // Calculate tokens from new entries
   let input_tokens = 0;
@@ -302,6 +311,7 @@ async function handleStop(config, input) {
     }
   }
 
+  // Always send stop heartbeat to count as a prompt
   const heartbeat = createHeartbeat(config, input, 'stop', {
     input_tokens,
     output_tokens,
@@ -309,9 +319,11 @@ async function handleStop(config, input) {
     cache_write_tokens,
   });
 
+  debugLog('Sending heartbeat', heartbeat);
   const success = await sendHeartbeat(config, heartbeat);
+  debugLog('Heartbeat result', { success });
 
-  if (success) {
+  if (success && newEntries.length > 0) {
     for (const entry of newEntries) {
       if (entry.uuid) {
         markAsSubmitted(entry.uuid);
@@ -343,6 +355,22 @@ async function readStdin() {
   });
 }
 
+const DEBUG_LOG_FILE = path.join(CONFIG_DIR, 'debug.log');
+
+function debugLog(message, data = null) {
+  // Temporarily always log for debugging
+  const timestamp = new Date().toISOString();
+  const logLine = data
+    ? `[${timestamp}] ${message}: ${JSON.stringify(data, null, 2)}\n`
+    : `[${timestamp}] ${message}\n`;
+  try {
+    ensureConfigDir();
+    fs.appendFileSync(DEBUG_LOG_FILE, logLine);
+  } catch (e) {
+    // ignore
+  }
+}
+
 async function main() {
   try {
     const config = loadConfig();
@@ -358,6 +386,14 @@ async function main() {
 
     const input = JSON.parse(stdinData);
     const eventName = input.hook_event_name;
+
+    // Debug: log the entire input
+    debugLog(`Event: ${eventName}`, {
+      session_id: input.session_id,
+      cwd: input.cwd,
+      transcript_path: input.transcript_path,
+      all_keys: Object.keys(input)
+    });
 
     switch (eventName) {
       case 'SessionStart':
@@ -376,6 +412,7 @@ async function main() {
 
     process.exit(0);
   } catch (e) {
+    debugLog('Error', { message: e.message, stack: e.stack });
     if (process.env.CHRONOS_DEBUG) {
       console.error('chronos hook error:', e);
     }

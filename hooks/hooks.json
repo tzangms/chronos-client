@@ -3,7 +3,7 @@
   "hooks": {
     "SessionStart": [
       {
-        "matcher": "startup",
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
@@ -15,6 +15,7 @@
     ],
     "Stop": [
       {
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
@@ -26,6 +27,7 @@
     ],
     "SessionEnd": [
       {
+        "matcher": "*",
         "hooks": [
           {
             "type": "command",
