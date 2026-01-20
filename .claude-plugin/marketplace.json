@@ -1,12 +1,22 @@
 {
   "name": "chronos-marketplace",
-  "description": "Chronos plugin marketplace",
+  "owner": {
+    "name": "tzangms",
+    "email": "tzangms@gmail.com"
+  },
+  "metadata": {
+    "description": "Chronos plugin marketplace",
+    "version": "1.0.0"
+  },
   "plugins": [
     {
       "name": "chronos",
+      "source": {
+        "source": "url",
+        "url": "https://github.com/tzangms/chronos-client.git"
+      },
       "description": "Track Claude Code usage time and token consumption",
-      "version": "0.1.0",
-      "repository": "https://github.com/tzangms/chronos-client"
+      "version": "0.1.0"
     }
   ]
 }
