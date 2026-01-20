@@ -232,11 +232,13 @@ async function parseTranscript(transcriptPath) {
       const entry = JSON.parse(line);
       stats.entries.push(entry);
 
-      if (entry.usage) {
-        stats.input_tokens += entry.usage.input_tokens || 0;
-        stats.output_tokens += entry.usage.output_tokens || 0;
-        stats.cache_read_tokens += entry.usage.cache_read_input_tokens || 0;
-        stats.cache_write_tokens += entry.usage.cache_creation_input_tokens || 0;
+      // Usage can be at entry.usage or entry.message.usage
+      const usage = entry.usage || (entry.message && entry.message.usage);
+      if (usage) {
+        stats.input_tokens += usage.input_tokens || 0;
+        stats.output_tokens += usage.output_tokens || 0;
+        stats.cache_read_tokens += usage.cache_read_input_tokens || 0;
+        stats.cache_write_tokens += usage.cache_creation_input_tokens || 0;
       }
     } catch (e) {
       // skip invalid lines
@@ -303,11 +305,13 @@ async function handleStop(config, input) {
   let cache_write_tokens = 0;
 
   for (const entry of newEntries) {
-    if (entry.usage) {
-      input_tokens += entry.usage.input_tokens || 0;
-      output_tokens += entry.usage.output_tokens || 0;
-      cache_read_tokens += entry.usage.cache_read_input_tokens || 0;
-      cache_write_tokens += entry.usage.cache_creation_input_tokens || 0;
+    // Usage can be at entry.usage or entry.message.usage
+    const usage = entry.usage || (entry.message && entry.message.usage);
+    if (usage) {
+      input_tokens += usage.input_tokens || 0;
+      output_tokens += usage.output_tokens || 0;
+      cache_read_tokens += usage.cache_read_input_tokens || 0;
+      cache_write_tokens += usage.cache_creation_input_tokens || 0;
     }
   }
 
