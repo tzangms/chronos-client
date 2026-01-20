@@ -26,11 +26,11 @@ claude plugin install chronos --scope project
 claude plugin install chronos --scope local
 ```
 
-### Method 3: Via Plugin Manager UI
+### Method 3: One-Line Install from GitHub
 
-1. Run `/plugin` in Claude Code
-2. Choose "Install plugin"
-3. Enter the path to the plugin directory
+```bash
+claude plugin install github:tzangms/chronos-client
+```
 
 ## Configuration
 

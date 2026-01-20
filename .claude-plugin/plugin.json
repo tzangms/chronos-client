@@ -5,8 +5,8 @@
   "author": {
     "name": "chronos"
   },
-  "homepage": "https://github.com/your-org/chronos",
-  "repository": "https://github.com/your-org/chronos",
+  "homepage": "https://github.com/tzangms/chronos-client",
+  "repository": "https://github.com/tzangms/chronos-client",
   "license": "MIT",
   "keywords": ["time-tracking", "usage", "tokens", "analytics", "team"],
   "hooks": "./hooks/hooks.json",
