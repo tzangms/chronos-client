@@ -1,6 +1,6 @@
 {
   "name": "chronos",
-  "version": "0.1.0",
+  "version": "0.1.1",
   "description": "Track Claude Code usage time and token consumption across your team",
   "author": {
     "name": "chronos"
@@ -9,6 +9,5 @@
   "repository": "https://github.com/tzangms/chronos-client",
   "license": "MIT",
   "keywords": ["time-tracking", "usage", "tokens", "analytics", "team"],
-  "hooks": "./hooks/hooks.json",
   "commands": ["./commands/"]
 }

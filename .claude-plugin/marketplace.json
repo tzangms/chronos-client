@@ -16,7 +16,7 @@
         "url": "https://github.com/tzangms/chronos-client.git"
       },
       "description": "Track Claude Code usage time and token consumption",
-      "version": "0.1.0"
+      "version": "0.1.1"
     }
   ]
 }
