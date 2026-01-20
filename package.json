@@ -13,7 +13,6 @@
     "setup": "node dist/cli/setup.js"
   },
   "dependencies": {
-    "@chronos/shared": "*",
     "node-machine-id": "^1.1.12"
   },
   "devDependencies": {

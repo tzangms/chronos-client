@@ -1,5 +1,5 @@
 import * as fs from 'fs';
-import { Heartbeat } from '@chronos/shared';
+import { Heartbeat } from '../types';
 import { ensureConfigDir, getOfflineDbPath } from './config';
 
 interface OfflineStorage {

@@ -1,6 +1,6 @@
 import * as https from 'https';
 import * as http from 'http';
-import { Heartbeat, HeartbeatResponse } from '@chronos/shared';
+import { Heartbeat, HeartbeatResponse } from '../types';
 import { loadConfig } from './config';
 import { appendOfflineHeartbeat, loadOfflineHeartbeats, clearOfflineHeartbeats } from './storage';
 

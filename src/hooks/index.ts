@@ -6,7 +6,7 @@ import {
   ClaudeStopInput,
   ClaudePostToolUseInput,
   Heartbeat,
-} from '@chronos/shared';
+} from '../types';
 import { loadConfig } from '../lib/config';
 import { getMachineId, getOS } from '../lib/machine';
 import { sendHeartbeat, syncOfflineHeartbeats } from '../lib/heartbeat';
