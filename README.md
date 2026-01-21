@@ -18,14 +18,14 @@ Then install the plugin:
 /plugin install chronos@tzangms/chronos-client
 ```
 
-### Method 2: Clone and Load (Development)
+### Method 2: Manual Clone (For Development)
 
 ```bash
 # Clone the repository
 git clone https://github.com/tzangms/chronos-client.git ~/.chronos-plugin
 
-# Run Claude Code with the plugin
-claude --plugin-dir ~/.chronos-plugin
+# Configure hooks manually or run:
+# claude --plugin-dir ~/.chronos-plugin
 ```
 
 ### Method 3: Add to Shell Config (Permanent)
@@ -69,7 +69,38 @@ Create `~/.chronos/config.json`:
 }
 ```
 
-## Slash Commands
+## Antigravity Integration (Skills)
+
+To give your Antigravity Agent the ability to self-track time and tokens, you can install the official Chronos Skill.
+
+**Option 1: Install via NPM (Recommended)**
+
+```bash
+# 1. Install the CLI tool globally
+npm install -g @tzangms/chronos-client
+
+# 2. Navigate to your agent project
+cd my-agent-project
+
+# 3. Install the skill
+chronos install-skill
+```
+
+**Option 2: Install from GitHub Source**
+
+If the package is not yet published to NPM, you can install directly from GitHub:
+
+```bash
+# 1. Install globally from GitHub
+npm install -g git+https://github.com/tzangms/chronos-client.git
+
+# 2. Install the skill
+chronos install-skill
+```
+
+The agent will then automatically detect the skill and start tracking session start/stop events according to the protocol defined in `SKILL.md`.
+
+## Slash Commands (Claude Code)
 
 Once installed, these commands are available in Claude Code:
 
@@ -78,7 +109,45 @@ Once installed, these commands are available in Claude Code:
 | `/chronos:setup` | Configure API key and server URL |
 | `/chronos:status` | Check configuration and connection status |
 | `/chronos:stats` | View your usage statistics |
+| `/chronos:stats` | View your usage statistics |
 | `/chronos:stats week` | View weekly statistics |
+
+## CLI Usage (Manual / CI Integration)
+
+You can also use the CLI directly to track events from other tools, scripts, or agents (like Antigravity).
+
+```bash
+# Basic usage
+chronos track --event <type> --project <path> [options]
+```
+
+### Options
+
+| Option | Description |
+|--------|-------------|
+| `-e, --event` | Event type (`session_start`, `stop`, `tool_use`, `session_end`) |
+| `-p, --project` | Absolute path to the project |
+| `--session` | Session ID (optional) |
+| `--tool` | Tool name (for `tool_use` events) |
+| `--input` | Input tokens count |
+| `--output` | Output tokens count |
+
+### Examples
+
+**Track a session start:**
+```bash
+chronos track -e session_start -p /Users/me/project --session session-123
+```
+
+**Track tool usage:**
+```bash
+chronos track -e tool_use -p /Users/me/project --tool "git_commit"
+```
+
+**Track completion (with tokens):**
+```bash
+chronos track -e stop -p /Users/me/project --input 150 --output 50
+```
 
 ## What Gets Tracked
 

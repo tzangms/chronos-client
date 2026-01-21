@@ -1,17 +1,13 @@
 #!/usr/bin/env node
 
-import * as path from 'path';
 import {
   ClaudeHookInput,
   ClaudeStopInput,
   ClaudePostToolUseInput,
-  Heartbeat,
 } from '../types';
-import { loadConfig } from '../lib/config';
-import { getMachineId, getOS } from '../lib/machine';
-import { sendHeartbeat, syncOfflineHeartbeats } from '../lib/heartbeat';
 import { parseTranscript } from '../lib/transcript';
 import { loadSubmittedIds, markAsSubmitted } from '../lib/storage';
+import { ChronosTracker } from '../lib/tracker';
 
 async function readStdin(): Promise<string> {
   return new Promise((resolve) => {
@@ -29,56 +25,26 @@ async function readStdin(): Promise<string> {
   });
 }
 
-function getProjectName(cwd: string): string {
-  return path.basename(cwd);
-}
-
 async function handleSessionStart(input: ClaudeHookInput): Promise<void> {
-  const config = loadConfig();
-  if (!config) return;
-
-  const heartbeat: Heartbeat = {
-    user_id: config.user_id || 'anonymous',
-    api_key: config.api_key,
-    timestamp: Math.floor(Date.now() / 1000),
-    project: getProjectName(input.cwd),
-    project_path: input.cwd,
-    event_type: 'session_start',
-    session_id: input.session_id,
-    machine_id: getMachineId(),
-    os: getOS(),
-  };
-
-  await sendHeartbeat(heartbeat);
-
-  // Try to sync any offline heartbeats
-  await syncOfflineHeartbeats();
+  const tracker = new ChronosTracker();
+  await tracker.track({
+    eventType: 'session_start',
+    projectPath: input.cwd,
+    sessionId: input.session_id,
+  });
 }
 
 async function handlePostToolUse(input: ClaudePostToolUseInput): Promise<void> {
-  const config = loadConfig();
-  if (!config) return;
-
-  const heartbeat: Heartbeat = {
-    user_id: config.user_id || 'anonymous',
-    api_key: config.api_key,
-    timestamp: Math.floor(Date.now() / 1000),
-    project: getProjectName(input.cwd),
-    project_path: input.cwd,
-    event_type: 'tool_use',
-    tool_name: input.tool_name,
-    session_id: input.session_id,
-    machine_id: getMachineId(),
-    os: getOS(),
-  };
-
-  await sendHeartbeat(heartbeat);
+  const tracker = new ChronosTracker();
+  await tracker.track({
+    eventType: 'tool_use',
+    projectPath: input.cwd,
+    sessionId: input.session_id,
+    toolName: input.tool_name,
+  });
 }
 
 async function handleStop(input: ClaudeStopInput): Promise<void> {
-  const config = loadConfig();
-  if (!config) return;
-
   // Parse transcript to get token usage
   const stats = await parseTranscript(input.transcript_path);
 
@@ -107,23 +73,16 @@ async function handleStop(input: ClaudeStopInput): Promise<void> {
     }
   }
 
-  const heartbeat: Heartbeat = {
-    user_id: config.user_id || 'anonymous',
-    api_key: config.api_key,
-    timestamp: Math.floor(Date.now() / 1000),
-    project: getProjectName(input.cwd),
-    project_path: input.cwd,
-    event_type: 'stop',
-    session_id: input.session_id,
-    machine_id: getMachineId(),
-    os: getOS(),
-    input_tokens,
-    output_tokens,
-    cache_read_tokens,
-    cache_write_tokens,
-  };
-
-  const success = await sendHeartbeat(heartbeat);
+  const tracker = new ChronosTracker();
+  const success = await tracker.track({
+    eventType: 'stop',
+    projectPath: input.cwd,
+    sessionId: input.session_id,
+    inputTokens: input_tokens,
+    outputTokens: output_tokens,
+    cacheReadTokens: cache_read_tokens,
+    cacheWriteTokens: cache_write_tokens,
+  });
 
   // Mark entries as submitted if successful
   if (success) {
@@ -136,22 +95,12 @@ async function handleStop(input: ClaudeStopInput): Promise<void> {
 }
 
 async function handleSessionEnd(input: ClaudeHookInput): Promise<void> {
-  const config = loadConfig();
-  if (!config) return;
-
-  const heartbeat: Heartbeat = {
-    user_id: config.user_id || 'anonymous',
-    api_key: config.api_key,
-    timestamp: Math.floor(Date.now() / 1000),
-    project: getProjectName(input.cwd),
-    project_path: input.cwd,
-    event_type: 'session_end',
-    session_id: input.session_id,
-    machine_id: getMachineId(),
-    os: getOS(),
-  };
-
-  await sendHeartbeat(heartbeat);
+  const tracker = new ChronosTracker();
+  await tracker.track({
+    eventType: 'session_end',
+    projectPath: input.cwd,
+    sessionId: input.session_id,
+  });
 }
 
 async function main(): Promise<void> {
