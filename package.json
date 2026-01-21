@@ -1,5 +1,5 @@
 {
-  "name": "@chronos/client",
+  "name": "@tzangms/chronos-client",
   "version": "0.1.1",
   "description": "Claude Code plugin for tracking AI usage time",
   "main": "dist/index.js",
@@ -12,7 +12,12 @@
     "dev": "tsc --watch",
     "setup": "node dist/cli/setup.js"
   },
+  "files": [
+    "dist",
+    "skills"
+  ],
   "dependencies": {
+    "commander": "^14.0.2",
     "node-machine-id": "^1.1.12"
   },
   "devDependencies": {
