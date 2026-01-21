@@ -1,10 +1,14 @@
 {
+  "name": "chronos-client",
   "version": "0.1.1",
+  "owner": {
+    "name": "tzangms"
+  },
   "plugins": [
     {
       "name": "chronos",
       "description": "Track Claude Code usage time and token consumption across your team",
-      "path": "."
+      "source": "."
     }
   ]
 }
