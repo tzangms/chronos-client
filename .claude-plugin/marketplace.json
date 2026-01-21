@@ -1,0 +1,10 @@
+{
+  "version": "0.1.1",
+  "plugins": [
+    {
+      "name": "chronos",
+      "description": "Track Claude Code usage time and token consumption across your team",
+      "path": "."
+    }
+  ]
+}
