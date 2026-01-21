@@ -1,6 +1,6 @@
 {
   "name": "chronos-client",
-  "version": "0.1.1",
+  "description": "Marketplace for Chronos Claude Code plugin",
   "owner": {
     "name": "tzangms"
   },
@@ -8,7 +8,11 @@
     {
       "name": "chronos",
       "description": "Track Claude Code usage time and token consumption across your team",
-      "source": "."
+      "version": "0.1.1",
+      "source": "./",
+      "author": {
+        "name": "tzangms"
+      }
     }
   ]
 }
