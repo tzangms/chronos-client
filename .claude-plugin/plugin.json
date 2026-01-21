@@ -3,7 +3,7 @@
   "version": "0.1.1",
   "description": "Track Claude Code usage time and token consumption across your team",
   "author": {
-    "name": "chronos"
+    "name": "tzangms"
   },
   "homepage": "https://github.com/tzangms/chronos-client",
   "repository": "https://github.com/tzangms/chronos-client",
