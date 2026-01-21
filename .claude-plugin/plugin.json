@@ -1,6 +1,6 @@
 {
   "name": "chronos",
-  "version": "0.1.1",
+  "version": "0.1.2",
   "description": "Track Claude Code usage time and token consumption across your team",
   "author": {
     "name": "tzangms"

@@ -1,4 +1,5 @@
 {
+  "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
   "name": "chronos-client",
   "description": "Marketplace for Chronos Claude Code plugin",
   "owner": {
@@ -8,7 +9,7 @@
     {
       "name": "chronos",
       "description": "Track Claude Code usage time and token consumption across your team",
-      "version": "0.1.1",
+      "version": "0.1.2",
       "source": "./",
       "author": {
         "name": "tzangms"
