@@ -4,24 +4,22 @@ Configure Chronos to track your Claude Code usage.
 
 ## Instructions
 
-Help the user set up Chronos by:
+Run the setup script:
 
-1. Ask the user for their Chronos server URL (default: http://localhost:3000)
-2. Ask the user for their API key (required)
-3. Create the configuration directory at `~/.chronos/` if it doesn't exist
-4. Save the configuration to `~/.chronos/config.json` with this format:
-
-```json
-{
-  "api_url": "http://localhost:3000",
-  "api_key": "ut_xxx..."
-}
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/scripts/chronos-setup.js
 ```
 
-5. Confirm the setup is complete
+The script will interactively ask for:
+1. **API URL** - The Chronos server URL (default: http://localhost:3000)
+2. **API Key** - Your API key from the Chronos server administrator
 
-## Notes
+It will test the connection and save the configuration to `~/.chronos/config.json`.
 
-- The API key is obtained from the Chronos server administrator
-- The API URL should include the protocol (http:// or https://)
-- Do not include a trailing slash in the API URL
+For non-interactive setup (e.g., scripting), pass arguments directly:
+
+```bash
+node ${CLAUDE_PLUGIN_ROOT}/scripts/chronos-setup.js --api-url https://chronos.example.com --api-key chr_xxx
+```
+
+Show the output to the user.

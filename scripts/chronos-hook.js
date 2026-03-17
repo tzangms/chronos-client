@@ -31,6 +31,15 @@ function ensureConfigDir() {
 }
 
 function loadConfig() {
+  // Environment variables take precedence over config file
+  if (process.env.CHRONOS_API_KEY) {
+    return {
+      api_url: process.env.CHRONOS_API_URL || 'http://localhost:3000',
+      api_key: process.env.CHRONOS_API_KEY,
+      user_id: process.env.CHRONOS_USER_ID,
+    };
+  }
+
   try {
     if (fs.existsSync(CONFIG_FILE)) {
       return JSON.parse(fs.readFileSync(CONFIG_FILE, 'utf-8'));
