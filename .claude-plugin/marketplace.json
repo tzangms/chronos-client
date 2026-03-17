@@ -9,7 +9,7 @@
     {
       "name": "chronos",
       "description": "Track Claude Code usage time and token consumption across your team",
-      "version": "0.1.4",
+      "version": "0.1.5",
       "source": "./",
       "author": {
         "name": "tzangms"
