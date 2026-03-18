@@ -1,157 +1,69 @@
 # Chronos Client - Claude Code Plugin
 
-A Claude Code plugin for tracking AI usage time and token consumption.
+追蹤 Claude Code 的使用時間與 token 消耗的 Plugin。
 
-## Installation
+## 安裝
 
-### Method 1: Via Plugin Marketplace (Recommended)
-
-In Claude Code, register the marketplace first:
+在 Claude Code 中執行：
 
 ```
 /plugin marketplace add tzangms/chronos-client
 ```
 
-Then install the plugin:
+然後安裝 plugin：
 
 ```
 /plugin install chronos@tzangms/chronos-client
 ```
 
-### Method 2: Clone and Load (Development)
+## 設定
 
-```bash
-# Clone the repository
-git clone https://github.com/tzangms/chronos-client.git ~/.chronos-plugin
-
-# Run Claude Code with the plugin
-claude --plugin-dir ~/.chronos-plugin
-```
-
-### Method 3: Add to Shell Config (Permanent)
-
-After cloning, add this alias to your `~/.zshrc` or `~/.bashrc`:
-
-```bash
-alias claude='claude --plugin-dir ~/.chronos-plugin'
-```
-
-Then reload your shell:
-
-```bash
-source ~/.zshrc  # or source ~/.bashrc
-```
-
-## Configuration
-
-After installing the plugin, you need to configure it with your API key:
-
-### Option 1: Run the setup command
-
-```bash
-node /path/to/chronos/client/scripts/chronos-setup.js
-```
-
-### Option 2: Use the slash command
+安裝後執行 setup 指令來設定 API URL 和 API Key：
 
 ```
 /chronos:setup
 ```
 
-### Option 3: Manually create config
+## 指令
 
-Create `~/.chronos/config.json`:
+| 指令 | 說明 |
+|------|------|
+| `/chronos:setup` | 設定 API URL 和 API Key |
+| `/chronos:status` | 檢查連線狀態 |
+| `/chronos:stats` | 查看使用統計 |
+| `/chronos:stats week` | 查看每週統計 |
 
-```json
-{
-  "api_url": "http://localhost:3001",
-  "api_key": "chr_your_api_key_here"
-}
-```
+## 追蹤內容
 
-## Slash Commands
+Plugin 會自動追蹤：
 
-Once installed, these commands are available in Claude Code:
+- **Session 開始/結束** - Claude Code session 的起訖時間
+- **Token 用量** - Input、output 和 cache tokens
+- **專案資訊** - 目前工作的專案
+- **Machine ID** - 匿名的機器識別碼
 
-| Command | Description |
-|---------|-------------|
-| `/chronos:setup` | Configure API key and server URL |
-| `/chronos:status` | Check configuration and connection status |
-| `/chronos:stats` | View your usage statistics |
-| `/chronos:stats week` | View weekly statistics |
+## 離線支援
 
-## What Gets Tracked
+伺服器無法連線時，資料會暫存在 `~/.chronos/offline_heartbeats.json`，恢復連線後自動同步。
 
-The plugin automatically tracks:
+## 疑難排解
 
-- **Session Start/End** - When you start and end Claude Code sessions
-- **Token Usage** - Input, output, and cache tokens
-- **Project Information** - Which project you're working on
-- **Machine ID** - Anonymous identifier for your machine
+### 連線錯誤
 
-## How It Works
+1. 檢查 `~/.chronos/config.json` 的 API URL
+2. 確認伺服器正在運行
+3. 確認 API Key 正確
 
-The plugin uses Claude Code hooks to capture events:
-
-1. **SessionStart** - Records when a session begins
-2. **Stop** - Parses the transcript to get token usage after each response
-3. **SessionEnd** - Records when a session ends
-
-Data is sent to your Chronos server via HTTP API.
-
-## Offline Support
-
-If the server is unavailable, heartbeats are stored locally in `~/.chronos/offline_heartbeats.json` and synced when the connection is restored.
-
-## Plugin Structure
-
-```
-client/
-├── .claude-plugin/
-│   └── plugin.json       # Plugin manifest
-├── hooks/
-│   └── hooks.json        # Hook definitions
-├── commands/
-│   ├── setup.md          # /chronos:setup command
-│   ├── status.md         # /chronos:status command
-│   └── stats.md          # /chronos:stats command
-├── scripts/
-│   └── chronos-hook.js   # Main hook handler
-└── README.md
-```
-
-## Troubleshooting
-
-### Plugin not loading
-
-Make sure the plugin directory contains `.claude-plugin/plugin.json`.
-
-### Hooks not firing
-
-Check that hooks are properly configured:
-
-```bash
-cat ~/.claude/settings.json | grep -A 20 hooks
-```
-
-### Connection errors
-
-1. Check your API URL in `~/.chronos/config.json`
-2. Make sure the server is running
-3. Verify your API key is correct
-
-### Debug mode
-
-Set the environment variable for verbose output:
+### Debug 模式
 
 ```bash
 export CHRONOS_DEBUG=1
 claude
 ```
 
-## Privacy
+## 隱私
 
-- Only usage metadata is sent (tokens, timestamps, project names)
-- No code content is transmitted
-- Machine ID is a hash, not a real identifier
-- All data stays on your configured server
+- 只傳送使用量的 metadata（tokens、時間戳記、專案名稱）
+- 不會傳送任何程式碼內容
+- Machine ID 是 hash，不是真實識別碼
+- 所有資料都存在你自己的伺服器上
