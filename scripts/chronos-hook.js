@@ -22,7 +22,8 @@ const readline = require('readline');
 const CONFIG_DIR = path.join(os.homedir(), '.chronos');
 const CONFIG_FILE = path.join(CONFIG_DIR, 'config.json');
 const OFFLINE_FILE = path.join(CONFIG_DIR, 'offline_heartbeats.json');
-const SUBMITTED_FILE = path.join(CONFIG_DIR, 'submitted_ids.json');
+const SESSIONS_DIR = path.join(CONFIG_DIR, 'sessions');
+const SESSION_FILE_MAX_AGE_MS = 30 * 24 * 60 * 60 * 1000;
 
 function ensureConfigDir() {
   if (!fs.existsSync(CONFIG_DIR)) {
@@ -30,8 +31,14 @@ function ensureConfigDir() {
   }
 }
 
+function ensureSessionsDir() {
+  ensureConfigDir();
+  if (!fs.existsSync(SESSIONS_DIR)) {
+    fs.mkdirSync(SESSIONS_DIR, { recursive: true });
+  }
+}
+
 function loadConfig() {
-  // Environment variables take precedence over config file
   if (process.env.CHRONOS_API_KEY) {
     return {
       api_url: process.env.CHRONOS_API_URL || 'http://localhost:3000',
@@ -59,7 +66,6 @@ let cachedMachineId = null;
 function getMachineId() {
   if (cachedMachineId) return cachedMachineId;
 
-  // Generate from system info
   const info = [
     os.hostname(),
     os.platform(),
@@ -72,31 +78,65 @@ function getMachineId() {
 }
 
 // ============================================================================
-// Offline Storage
+// Per-Session Submitted UUIDs
 // ============================================================================
 
-function loadSubmittedIds() {
+function sanitizeSessionId(sessionId) {
+  return String(sessionId).replace(/[^a-zA-Z0-9_-]/g, '_');
+}
+
+function getSessionFile(sessionId) {
+  return path.join(SESSIONS_DIR, `${sanitizeSessionId(sessionId)}.json`);
+}
+
+function loadSessionUuids(sessionId) {
+  if (!sessionId) return new Set();
   try {
-    if (fs.existsSync(SUBMITTED_FILE)) {
-      return new Set(JSON.parse(fs.readFileSync(SUBMITTED_FILE, 'utf-8')));
-    }
+    return new Set(JSON.parse(fs.readFileSync(getSessionFile(sessionId), 'utf-8')));
+  } catch (e) {
+    return new Set();
+  }
+}
+
+function saveSessionUuids(sessionId, uuids) {
+  if (!sessionId) return;
+  ensureSessionsDir();
+  fs.writeFileSync(getSessionFile(sessionId), JSON.stringify(Array.from(uuids)));
+}
+
+function deleteSessionFile(sessionId) {
+  if (!sessionId) return;
+  try {
+    fs.unlinkSync(getSessionFile(sessionId));
   } catch (e) {
     // ignore
   }
-  return new Set();
 }
 
-function saveSubmittedIds(ids) {
-  ensureConfigDir();
-  const arr = Array.from(ids).slice(-10000);
-  fs.writeFileSync(SUBMITTED_FILE, JSON.stringify(arr));
+function gcOldSessionFiles() {
+  let files;
+  try {
+    files = fs.readdirSync(SESSIONS_DIR);
+  } catch (e) {
+    return;
+  }
+  const now = Date.now();
+  for (const file of files) {
+    const filePath = path.join(SESSIONS_DIR, file);
+    try {
+      const stat = fs.statSync(filePath);
+      if (now - stat.mtimeMs > SESSION_FILE_MAX_AGE_MS) {
+        fs.unlinkSync(filePath);
+      }
+    } catch (e) {
+      // ignore
+    }
+  }
 }
 
-function markAsSubmitted(id) {
-  const ids = loadSubmittedIds();
-  ids.add(id);
-  saveSubmittedIds(ids);
-}
+// ============================================================================
+// Offline Storage
+// ============================================================================
 
 function loadOfflineHeartbeats() {
   try {
@@ -112,7 +152,7 @@ function loadOfflineHeartbeats() {
 
 function saveOfflineHeartbeats(heartbeats) {
   ensureConfigDir();
-  fs.writeFileSync(OFFLINE_FILE, JSON.stringify({ heartbeats }, null, 2));
+  fs.writeFileSync(OFFLINE_FILE, JSON.stringify({ heartbeats }));
 }
 
 function appendOfflineHeartbeat(heartbeat) {
@@ -122,8 +162,10 @@ function appendOfflineHeartbeat(heartbeat) {
 }
 
 function clearOfflineHeartbeats() {
-  if (fs.existsSync(OFFLINE_FILE)) {
+  try {
     fs.unlinkSync(OFFLINE_FILE);
+  } catch (e) {
+    // ignore
   }
 }
 
@@ -193,7 +235,6 @@ async function syncOfflineHeartbeats(config) {
   let synced = 0;
   let failed = 0;
 
-  // Send in batches of 25
   for (let i = 0; i < heartbeats.length; i += 25) {
     const batch = heartbeats.slice(i, i + 25);
     try {
@@ -217,16 +258,10 @@ async function syncOfflineHeartbeats(config) {
 // ============================================================================
 
 async function parseTranscript(transcriptPath) {
-  const stats = {
-    input_tokens: 0,
-    output_tokens: 0,
-    cache_read_tokens: 0,
-    cache_write_tokens: 0,
-    entries: [],
-  };
+  const entries = [];
 
-  if (!fs.existsSync(transcriptPath)) {
-    return stats;
+  if (!transcriptPath || !fs.existsSync(transcriptPath)) {
+    return entries;
   }
 
   const fileStream = fs.createReadStream(transcriptPath);
@@ -239,22 +274,15 @@ async function parseTranscript(transcriptPath) {
     if (!line.trim()) continue;
     try {
       const entry = JSON.parse(line);
-      stats.entries.push(entry);
-
-      // Usage can be at entry.usage or entry.message.usage
-      const usage = entry.usage || (entry.message && entry.message.usage);
-      if (usage) {
-        stats.input_tokens += usage.input_tokens || 0;
-        stats.output_tokens += usage.output_tokens || 0;
-        stats.cache_read_tokens += usage.cache_read_input_tokens || 0;
-        stats.cache_write_tokens += usage.cache_creation_input_tokens || 0;
-      }
+      if (!entry.uuid) continue;
+      const usage = entry.usage || (entry.message && entry.message.usage) || null;
+      entries.push({ uuid: entry.uuid, usage });
     } catch (e) {
-      // skip invalid lines
+      // ignore
     }
   }
 
-  return stats;
+  return entries;
 }
 
 // ============================================================================
@@ -281,50 +309,58 @@ function createHeartbeat(config, input, eventType, extra = {}) {
 }
 
 async function handleSessionStart(config, input) {
-  const heartbeat = createHeartbeat(config, input, 'session_start');
-  await sendHeartbeat(config, heartbeat);
+  const heartbeatPromise = (async () => {
+    const heartbeat = createHeartbeat(config, input, 'session_start');
+    await sendHeartbeat(config, heartbeat);
+    await syncOfflineHeartbeats(config);
+  })();
 
-  // Try to sync offline heartbeats
-  await syncOfflineHeartbeats(config);
+  // Skip re-baselining when state already exists — overwriting would silently
+  // swallow any deltas accumulated since the last Stop.
+  if (input.session_id && !fs.existsSync(getSessionFile(input.session_id))) {
+    const entries = await parseTranscript(input.transcript_path);
+    saveSessionUuids(input.session_id, new Set(entries.map(e => e.uuid)));
+    debugLog('Baseline established', { session_id: input.session_id, count: entries.length });
+  }
+
+  await heartbeatPromise;
+
+  gcOldSessionFiles();
 }
 
 async function handleStop(config, input) {
   debugLog('handleStop called', { transcript_path: input.transcript_path });
 
-  // Parse transcript to get token usage
-  const stats = await parseTranscript(input.transcript_path);
-  debugLog('Transcript parsed', {
-    total_entries: stats.entries.length,
-    input_tokens: stats.input_tokens,
-    output_tokens: stats.output_tokens
-  });
+  const entries = await parseTranscript(input.transcript_path);
+  const submittedUuids = loadSessionUuids(input.session_id);
 
-  // Check for new entries
-  const submittedIds = loadSubmittedIds();
-  const newEntries = stats.entries.filter(e => e.uuid && !submittedIds.has(e.uuid));
+  const newEntries = entries.filter(e => !submittedUuids.has(e.uuid));
   debugLog('New entries', {
     new_count: newEntries.length,
-    submitted_count: submittedIds.size
+    submitted_count: submittedUuids.size,
+    total_count: entries.length,
   });
 
-  // Calculate tokens from new entries
   let input_tokens = 0;
   let output_tokens = 0;
   let cache_read_tokens = 0;
   let cache_write_tokens = 0;
 
   for (const entry of newEntries) {
-    // Usage can be at entry.usage or entry.message.usage
-    const usage = entry.usage || (entry.message && entry.message.usage);
-    if (usage) {
-      input_tokens += usage.input_tokens || 0;
-      output_tokens += usage.output_tokens || 0;
-      cache_read_tokens += usage.cache_read_input_tokens || 0;
-      cache_write_tokens += usage.cache_creation_input_tokens || 0;
-    }
+    if (!entry.usage) continue;
+    input_tokens += entry.usage.input_tokens || 0;
+    output_tokens += entry.usage.output_tokens || 0;
+    cache_read_tokens += entry.usage.cache_read_input_tokens || 0;
+    cache_write_tokens += entry.usage.cache_creation_input_tokens || 0;
   }
 
-  // Always send stop heartbeat to count as a prompt
+  // Mark before send: a crashed send loses one heartbeat; a crashed
+  // send-then-mark replays every retry. The smaller failure mode wins.
+  if (newEntries.length > 0 && input.session_id) {
+    for (const entry of newEntries) submittedUuids.add(entry.uuid);
+    saveSessionUuids(input.session_id, submittedUuids);
+  }
+
   const heartbeat = createHeartbeat(config, input, 'stop', {
     input_tokens,
     output_tokens,
@@ -335,19 +371,12 @@ async function handleStop(config, input) {
   debugLog('Sending heartbeat', heartbeat);
   const success = await sendHeartbeat(config, heartbeat);
   debugLog('Heartbeat result', { success });
-
-  if (success && newEntries.length > 0) {
-    for (const entry of newEntries) {
-      if (entry.uuid) {
-        markAsSubmitted(entry.uuid);
-      }
-    }
-  }
 }
 
 async function handleSessionEnd(config, input) {
   const heartbeat = createHeartbeat(config, input, 'session_end');
   await sendHeartbeat(config, heartbeat);
+  deleteSessionFile(input.session_id);
 }
 
 // ============================================================================
@@ -388,7 +417,6 @@ async function main() {
   try {
     const config = loadConfig();
     if (!config || !config.api_key) {
-      // Not configured, exit silently
       process.exit(0);
     }
 
@@ -400,7 +428,6 @@ async function main() {
     const input = JSON.parse(stdinData);
     const eventName = input.hook_event_name;
 
-    // Debug: log the entire input
     debugLog(`Event: ${eventName}`, {
       session_id: input.session_id,
       cwd: input.cwd,
@@ -419,7 +446,6 @@ async function main() {
         await handleSessionEnd(config, input);
         break;
       default:
-        // Unknown event, ignore
         break;
     }
 
