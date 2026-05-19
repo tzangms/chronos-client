@@ -1,8 +1,25 @@
 import * as https from 'https';
 import * as http from 'http';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Heartbeat, HeartbeatResponse } from '../types';
 import { loadConfig } from './config';
 import { appendOfflineHeartbeat, loadOfflineHeartbeats, clearOfflineHeartbeats } from './storage';
+
+let cachedUserAgent: string | null = null;
+
+function userAgent(): string {
+  if (cachedUserAgent) return cachedUserAgent;
+  let version = 'unknown';
+  try {
+    const pkg = JSON.parse(fs.readFileSync(path.join(__dirname, '..', '..', 'package.json'), 'utf8'));
+    if (pkg.version) version = pkg.version;
+  } catch {
+    // Fall through to 'unknown'
+  }
+  cachedUserAgent = `chronos-client/${version}`;
+  return cachedUserAgent;
+}
 
 export async function sendHeartbeats(heartbeats: Heartbeat[]): Promise<HeartbeatResponse> {
   const config = loadConfig();
@@ -26,7 +43,7 @@ export async function sendHeartbeats(heartbeats: Heartbeat[]): Promise<Heartbeat
         'Content-Type': 'application/json',
         'Content-Length': Buffer.byteLength(postData),
         'Authorization': `Bearer ${config.api_key}`,
-        'User-Agent': 'chronos-client/0.1.0',
+        'User-Agent': userAgent(),
       },
       timeout: 30000,
     };
