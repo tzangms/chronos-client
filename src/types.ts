@@ -19,6 +19,9 @@ export interface Heartbeat {
   cache_read_tokens?: number;
   cache_write_tokens?: number;
 
+  // Claude model used in the session (e.g., "claude-sonnet-4-6-...")
+  model?: string;
+
   // Environment info
   session_id: string;
   machine_id: string;

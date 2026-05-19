@@ -97,6 +97,7 @@ async function handleStop(input: ClaudeStopInput): Promise<void> {
   let output_tokens = 0;
   let cache_read_tokens = 0;
   let cache_write_tokens = 0;
+  let model: string | undefined;
 
   for (const entry of newEntries) {
     if (entry.usage) {
@@ -104,6 +105,9 @@ async function handleStop(input: ClaudeStopInput): Promise<void> {
       output_tokens += entry.usage.output_tokens || 0;
       cache_read_tokens += entry.usage.cache_read_input_tokens || 0;
       cache_write_tokens += entry.usage.cache_creation_input_tokens || 0;
+    }
+    if (entry.message?.model) {
+      model = entry.message.model;
     }
   }
 
@@ -121,6 +125,7 @@ async function handleStop(input: ClaudeStopInput): Promise<void> {
     output_tokens,
     cache_read_tokens,
     cache_write_tokens,
+    model,
   };
 
   const success = await sendHeartbeat(heartbeat);
